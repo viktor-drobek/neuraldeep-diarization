@@ -350,10 +350,24 @@ inline comment kept). `check` with no key prints `blocked` and names the
 variable and the file. No live call was made: the helper no longer reads the
 provider file that the earlier live checks used.
 
+## Explained API errors
+
+An HTTP error used to read only `HTTP <code>; no automatic retry`. The helper now
+adds a fixed hint from `ERROR_HINTS`, the statuses the provider documents
+(`llms-full.txt`: 400, 401, 408, 429, 500, 502 in "Лимиты и коды ошибок", 422 and
+503 in the SpeechCore upload errors), plus `Retry-After` when it is whole seconds
+(at most six digits) and `X-Window` when it is `session` or `week`; any other
+header value is dropped. The provider's response body and reason text are still
+never shown. Every SKILL.md has an "Error handling" table of these statuses, with
+what each means at preflight (`blocked`), on submission
+(`reconciliation_required`) and while polling (`poll_error`); a shared test checks
+that the table lists every code of `ERROR_HINTS`. The three tests failed first;
+each of 5 mutations fails one.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **142 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **145 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.
