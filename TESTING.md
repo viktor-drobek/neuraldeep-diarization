@@ -311,10 +311,21 @@ documentation test failed first; the close test guards the new open file. Each
 of 4 mutations fails a test (a blocking open hangs the FIFO test), on Python
 3.14 and 3.10.
 
+## Eleventh cross-review
+
+Two reviewers found nothing and the third one low item: the upload descriptor
+kept `O_NONBLOCK` after the regular-file check, and some FUSE or network file
+systems honour it on reads, which the helper would take for a shrinking file
+after the POST started. `multipart()` now clears it with `os.set_blocking()`
+before reading. SKILL.md also says that ties go to the speaker who spoke first
+in the recording and that an `--output` equal to the `--state` blocks. Both
+tests failed first; removing `set_blocking` fails the new one. By the owner's
+decision no further review round was run.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **136 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **137 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.

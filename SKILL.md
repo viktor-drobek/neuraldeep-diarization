@@ -132,7 +132,8 @@ python3 scripts/client.py run diarize --file meeting.mp3 --minutes 2 --state dia
 ```
 
 Before any network call, `run` refuses:
-- an existing `--state` path, or a `--state` that is the `--file` itself;
+- an existing `--state` path, a `--state` that is the `--file` itself,
+  or an `--output` that is the `--state` file (also under a case alias);
 - an `--output` that is the audio file itself (also through a link or a case
   alias) or a directory, a name the file system refuses, another user's file in
   a sticky directory such as `/tmp`, or whose directory is missing or not
@@ -167,7 +168,7 @@ python3 scripts/client.py merge --diarization diarization.json --transcript tran
 
 Both inputs are first ordered by time. Each transcript segment goes to the
 speaker whose diarization segments overlap it most; a tie (equal to the
-microsecond) goes to the speaker who spoke first. A segment that overlaps no
+microsecond) goes to the speaker who spoke first in the recording. A segment that overlaps no
 speaker keeps `speaker: null` and is counted in `unassigned_segments`.
 Consecutive segments of one speaker are joined into a turn; unassigned segments
 stay separate turns, and empty text is skipped. `speakers.json` also records the SHA-256 of both inputs:
