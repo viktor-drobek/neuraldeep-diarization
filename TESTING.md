@@ -236,10 +236,20 @@ A sixth round found four low items:
 All four tests failed first. Each of 4 mutations fails a test, on Python 3.14
 and 3.10.
 
+## Seventh cross-review
+
+A seventh round found one low item: with `--file x --state x` and no `x` yet,
+`new_state()` created `x` and the helper then uploaded its own state JSON to the
+billed endpoint. Once the state exists, `run` now blocks an input file that is
+the state file, also through a case alias, before any request. A blanket "the
+input must exist" check before the state would have changed transcription's
+blocked `run`, which still leaves a state file. The test, for diarize and OCR,
+failed first, and its mutation fails it, on Python 3.14 and 3.10.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **128 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **129 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.

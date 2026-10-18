@@ -92,7 +92,9 @@ alias, blocks with "Artifact path must differ from the input file", a name the
 file system refuses (such as one longer than 255 bytes, or a character vfat or
 exFAT reject, found by creating and removing the name) with "Artifact path is
 not usable", an output that is the state file, also through a case alias, with
-"State and artifact paths must differ", one that is a directory with "Artifact path is a directory",
+"State and artifact paths must differ", an input file that is the state file
+(the helper would otherwise upload its own state) with "Input file must differ
+from the state file", one that is a directory with "Artifact path is a directory",
 and an output directory (the one the path names, before symlinks are
 resolved) that is missing or not readable, writable and searchable blocks with
 "Artifact directory is missing or not writable". An existing output owned by

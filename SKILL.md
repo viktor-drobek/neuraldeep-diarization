@@ -132,7 +132,7 @@ python3 scripts/client.py run diarize --file meeting.mp3 --minutes 2 --state dia
 ```
 
 Before any network call, `run` refuses:
-- an existing `--state` path;
+- an existing `--state` path, or a `--state` that is the `--file` itself;
 - an `--output` that is the audio file itself (also through a link or a case
   alias) or a directory, a name the file system refuses, another user's file in
   a sticky directory such as `/tmp`, or whose directory is missing or not
