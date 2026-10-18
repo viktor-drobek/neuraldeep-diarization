@@ -86,7 +86,9 @@ files and writes only `--output`.
 
 Before any request, `run` also checks where the paid result will go. An
 `--output` that is the input file blocks with "Artifact path must differ from
-the input file", and a missing or read-only output directory blocks with
+the input file", one that is a directory with "Artifact path is a directory",
+and a missing or read-only output directory (the one the path names, before
+symlinks are resolved) blocks with
 "Artifact directory is missing or not writable". Without these checks a
 successful submission could overwrite its input or end `reconciliation_required`
 with the answer lost.

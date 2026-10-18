@@ -128,8 +128,9 @@ python3 scripts/client.py run diarize --file meeting.mp3 --minutes 3 --state dia
 
 Before any network call, `run` refuses:
 - an existing `--state` path;
-- an `--output` that is the audio file itself, or whose directory is missing or
-  not writable, since a paid answer must have somewhere to go;
+- an `--output` that is the audio file itself or a directory, or whose
+  directory is missing or not writable, since a paid answer must have somewhere
+  to go;
 - a file over 500 MB.
 
 The preflight also refuses more than 240 minutes (4 hours) before the POST.
@@ -168,8 +169,8 @@ skipped. `speakers.json` also records the SHA-256 of both inputs:
  "sources": {"diarization": "<sha256>", "transcript": "<sha256>"}}
 ```
 
-`merge` blocks when either input has another shape, or when `--output` is one
-of the inputs. Both recordings must be the same audio: the helper cannot check that.
+`merge` blocks when an input is not valid UTF-8 JSON (a byte order mark is
+fine) or has another shape, or when `--output` is one of the inputs. Both recordings must be the same audio: the helper cannot check that.
 The envelope's artifact records the SHA-256 of the inputs in every format.
 
 ### Subtitles and RTTM
@@ -180,11 +181,11 @@ python3 scripts/client.py merge --diarization diarization.json --transcript tran
 python3 scripts/client.py merge --diarization diarization.json --format rttm --output diarization.rttm
 ```
 
-- `--format vtt` writes WebVTT, the W3C format, with one cue per turn and the
-  speaker in a voice tag, for example `<v SPEAKER_0>Hello there. Hi.`; `&`, `<`
-  and `>` are escaped.
-- `--format srt` writes numbered SRT cues. SRT has no speaker field, so the
-  speaker is a prefix, for example `SPEAKER_0: Hello there. Hi.`
+- `--format vtt` writes WebVTT, the W3C format, with one cue per transcript
+  segment, at that segment's own time, and the speaker in a voice tag, for
+  example `<v SPEAKER_0>Hello there.`; `&`, `<` and `>` are escaped.
+- `--format srt` writes numbered SRT cues, one per transcript segment. SRT has
+  no speaker field, so the speaker is a prefix, for example `SPEAKER_0: Hello there.`
 - In both, a turn without a speaker has no voice tag or prefix, line breaks
   inside a turn become spaces, and every cue lasts at least 1 ms.
 - `--format rttm` needs no transcript: it converts the saved diarization to

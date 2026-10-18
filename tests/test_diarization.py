@@ -118,6 +118,14 @@ class DiarizationTests(unittest.TestCase):
         self.assertIn("/v1/audio/diarize", readme)
         self.assertIn("WebVTT, SRT or RTTM", readme)
 
+    def test_example_runtime_files_are_ignored(self):
+        import re
+        ignored = (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
+        names = set(re.findall(r"--(?:output|state) (\S+)", skill()))
+        self.assertIn("speakers.vtt", names)
+        for name in names:
+            self.assertIn(name, ignored)
+
     def test_skill_declares_its_transcription_dependency(self):
         head = skill().split("---", 2)[1]
         self.assertIn("    depends_on:\n      - neuraldeep-transcriptions\n", head)

@@ -119,10 +119,39 @@ Each of 11 mutations of these fixes fails a test. Not changed, with reasons in
 the review: zero-length transcript segments stay unassigned; `minutes_charged`
 is not compared with `--minutes`; the upload is built in memory, as for OCR.
 
+## Second cross-review
+
+A second round by the same three reviewers, on the fixed change and without the
+first round's answers, led to six more changes. Each test was written first and
+failed, except the read-only and missing directory cases, which already passed:
+
+1. An `--output` that is an existing directory (also `.`) passed the output
+   check, so the billed answer was lost after the POST; and a symlink in a
+   read-only directory passed because the check used the resolved parent while
+   `atomic_write()` writes in the unresolved one. Both now block before any
+   request, with the read-only, directory, `.` and symlink cases tested.
+2. WebVTT and SRT wrote one cue per speaker turn, so a pause inside a turn put
+   text on screen before it was spoken. `label_segments()` now keeps each
+   transcript segment, subtitles get one cue per segment at its own time, and
+   `merge_transcript()` builds the JSON turns from the same labels.
+3. A finite but huge timestamp crashed the subtitle writers with
+   `OverflowError`, and deeply nested input JSON crashed `merge` with
+   `RecursionError`. Both now end `blocked` with the JSON envelope.
+4. Bad input JSON got the generic credentials message, and a UTF-8 byte order
+   mark was refused. `merge` now parses bytes and names the bad file.
+5. The output check had no test for a read-only directory; it has now, as in 1.
+6. `.gitignore` missed the example outputs `speakers.vtt`, `speakers.srt` and
+   `diarization.rttm`; a documentation test now checks every example path.
+
+A reviewer's request to drop "speakers are numbered in order of first
+appearance" was rejected: the provider documents it, as it does the note that
+the first seconds of a turn are sometimes left without a speaker. Each of 7
+mutations of these fixes fails a test.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **108 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **114 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.
 - Fenced Python examples parsed with `ast.parse`; Bash examples passed `bash -n`.
