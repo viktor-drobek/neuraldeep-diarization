@@ -112,8 +112,11 @@ class DiarizationTests(unittest.TestCase):
             self.assertIn(needle, text)
         relay = (ROOT / "STARTER_RELAY.md").read_text(encoding="utf-8")
         self.assertRegex(relay, r"\| Diarization \| `/v1/audio/diarize/quota`: `unit: minute`, `tier`, `day` and `month`")
-        for needle in ("WebVTT, SRT or RTTM", "Artifact directory is missing or not writable"):
+        for needle in ("WebVTT, SRT or RTTM", "Artifact directory is missing or not writable",
+                       "documents no chunked or resumable upload", "streamed in blocks"):
             self.assertIn(needle, relay)
+        for needle in ("documents no chunked or resumable upload", "streamed in blocks"):
+            self.assertIn(needle, text)
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("/v1/audio/diarize", readme)
         self.assertIn("WebVTT, SRT or RTTM", readme)

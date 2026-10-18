@@ -261,10 +261,40 @@ An eighth round found two low items:
 
 Each of 3 mutations fails a test, on Python 3.14 and 3.10.
 
+## Ninth cross-review: streamed uploads
+
+The ninth round found that the POST timeout also bounded the whole upload:
+over TLS the in-memory body went out in one `sendall` under one deadline, so a
+large file on a slow link always ended `reconciliation_required` without the
+provider ever receiving it. The owner asked for chunked sending with resume
+where the API supports it, and for each API's size limit.
+
+- **Provider support.** `llms-full.txt` (re-read 2026-10-18, unchanged)
+  documents no chunked or resumable upload for any endpoint, and the SpeechCore
+  section says to upload large files whole. So nothing can be continued after
+  a break; by the owner's decision a broken upload is never resent.
+- **Streaming.** `multipart()` now returns an `UploadBody` that `http.client`
+  reads in 64 KB blocks, with a normal `Content-Length` (no chunked transfer
+  encoding), so the server sees the same request. Each block is one socket
+  timeout window, and no copy of the file sits in memory. Exactly the size
+  checked before the request is sent; a file that shrinks meanwhile raises.
+- **Limits.** `UPLOAD_LIMITS = {"diarize": 500 MB}` holds only documented limits;
+  OCR, Images, SpeechCore and transcription document none, so none is assumed.
+  The cap is checked on the same size that is streamed.
+
+Five tests were added first and failed (the body was bytes, and
+`UPLOAD_LIMITS` did not exist); the shared multipart tests now read the body
+with `drain()`. Each of 6 mutations fails a test. A local TLS server reading
+slowly (`SO_RCVBUF` 64 KB, 50 ms per read) took a 6 MB upload with a 2 s
+timeout: the old in-memory body failed after 2.0 s with about 640 KB received;
+the streamed body delivered all 6 MB in 38.7 s and got `HTTP 200`, on Python
+3.14 and on 3.10 in Docker. The client's send buffer was set to 64 KB in that
+script so the kernel could not hide unsent megabytes.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **130 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **134 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.

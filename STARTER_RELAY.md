@@ -71,8 +71,9 @@ bucket is verified, so `run diarize` is enabled. `--minutes` must be the locally
 verified duration rounded up to whole minutes, at most 240 (4 hours), and the file
 at most 500 MB. Both the `day` and `month` windows must have `limit - used` of at
 least that many minutes. The helper never parses audio to find its duration.
-The answer arrives on the POST itself, so its read timeout is
-`max(120, 30 * minutes)` seconds instead of the usual 30, and the state records it.
+The answer arrives on the POST itself, so its timeout is `max(120, 30 * minutes)`
+seconds instead of the usual 30, for each upload block and for the wait for the
+answer, and the state records it.
 
 ## Run and recover
 
@@ -81,6 +82,16 @@ Use the worked commands in [SKILL.md](SKILL.md), from this directory.
 preflight, one submission, bounded polling where applicable, and artifact save.
 `--payload` reads JSON for Search or image generation; `--file` reads a local
 OCR, image or audio input. Uploads require explicit user authorization for the content.
+Every upload is streamed in blocks: the multipart body is read from the file
+64 KB at a time and sent with a normal `Content-Length`, so the socket timeout
+bounds each block rather than the whole file, and no copy of the file is held
+in memory. Exactly the size checked before the request is sent; a file that
+shrinks meanwhile fails the request.
+NeuralDeep documents no chunked or resumable upload for any of these endpoints,
+so a broken upload is never continued or resent: it ends like any failed submission. Only diarization
+documents a file size limit (500 MB), and the helper enforces exactly that; the
+other services document none, so none is assumed.
+
 `merge` joins a saved diarization with a timed transcript; it reads only local
 files and writes only `--output`. Its inputs must be strict UTF-8 JSON (a byte
 order mark is fine), and a missing input or an unwritable output blocks with a

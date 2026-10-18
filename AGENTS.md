@@ -24,14 +24,16 @@ guard:
 - `check diarize --minutes N` and `run diarize` reach the network; `resume` is refused because the
   call is synchronous; `merge` is offline and needs no key.
 - `--minutes` is the locally verified audio length rounded up to whole minutes. The helper never
-  guesses or parses it, and refuses more than 240 minutes or a file over 500 MB.
+  guesses or parses it, and refuses more than 240 minutes or a file over the documented 500 MB.
 - The model returns speaker segments without text. `merge` joins them by time with a transcript
   from `/v1/audio/transcriptions` (neuraldeep-transcriptions, blocked today) or an existing
   SpeechCore job (SpeechCore uploads are blocked too), and writes JSON, WebVTT or SRT;
   `--format rttm` converts the diarization alone. SKILL.md tells agents to confirm a transcript
   exists before paying for a diarization meant for a speaker transcript.
-- The POST waits `max(120, 30 * minutes)` seconds for its answer, and `run` checks the output
-  path before any request: a paid answer must not replace its input or be lost.
+- The upload is streamed in 64 KB blocks; each block and the wait for the answer get
+  `max(120, 30 * minutes)` seconds. The provider documents no resumable upload, so a broken
+  upload is never resent. `run` checks the output path before any request: a paid answer must
+  not replace its input or be lost.
 - Never call the endpoint directly with `curl` or an SDK, add retries, or send `response_format`
   or `min_duration`: the helper validates only the JSON answer.
 - Keep SKILL.md, README.md and STARTER_RELAY.md limited to what the helper does and what the

@@ -137,12 +137,16 @@ Before any network call, `run` refuses:
   alias) or a directory, a name the file system refuses, another user's file in
   a sticky directory such as `/tmp`, or whose directory is missing or not
   writable, since a paid answer must have somewhere to go;
-- a file over 500 MB.
+- a file over the documented 500 MB limit.
 
 The preflight also refuses more than 240 minutes (4 hours) before the POST.
-The answer arrives on the POST itself, so the helper waits for it
-`max(120, 30 * minutes)` seconds (two hours for four hours of audio) and records
-that in the state's `timeouts`. On success the envelope is `completed` and
+The audio is streamed in blocks of 64 KB with a normal `Content-Length`, so no
+copy of it is held in memory and a slow link does not cut the upload short:
+each block, and then the wait for the answer, gets `max(120, 30 * minutes)`
+seconds (two hours for four hours of audio), recorded in the state's
+`timeouts`. NeuralDeep documents no chunked or resumable upload, so a
+connection that breaks mid-upload is never continued or resent: like any
+failure after the POST started, it ends `reconciliation_required`. On success the envelope is `completed` and
 `diarization.json` holds the provider's answer:
 
 ```json
