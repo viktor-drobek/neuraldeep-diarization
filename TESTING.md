@@ -195,10 +195,31 @@ A fourth round found one medium defect, confirmed by CI, and three small ones:
 Tests 2 and 3 failed first; 4 only adds coverage. Each of 4 mutations fails a
 test.
 
+## Fifth cross-review
+
+A fifth round found one medium and four low edge cases:
+
+1. Any `OSError` from `lstat` counted as "nothing to replace", so an output
+   name longer than the file system allows passed every check and the paid
+   answer was lost after the POST. Only `FileNotFoundError` is ignored now;
+   anything else blocks with "Artifact path is not usable".
+2. A speaker label with a lone surrogate escape made `--format rttm` fall back
+   to the advice for billed jobs; it now blocks with "Input text is not valid
+   Unicode", like the other formats.
+3. A validated paid answer with a lone surrogate escape could not be encoded
+   for saving; the diarization artifact is now written with ASCII escapes.
+4. The diarization shape check of `--format rttm` had no test; it has now.
+5. The same-file checks of `run` and `merge` compared resolved paths only, so a
+   hard link or a case alias on a case-insensitive file system could replace an
+   input. `same_file()` adds `os.path.samefile()`; tested with hard links.
+
+Tests 1, 2, 3 and 5 failed first; 4 is part of the RTTM test. Each of 5
+mutations fails a test, on Python 3.14 and 3.10.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **121 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **125 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.
