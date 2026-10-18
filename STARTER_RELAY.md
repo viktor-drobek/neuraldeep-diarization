@@ -71,6 +71,8 @@ bucket is verified, so `run diarize` is enabled. `--minutes` must be the locally
 verified duration rounded up to whole minutes, at most 240 (4 hours), and the file
 at most 500 MB. Both the `day` and `month` windows must have `limit - used` of at
 least that many minutes. The helper never parses audio to find its duration.
+The answer arrives on the POST itself, so its read timeout is
+`max(120, 30 * minutes)` seconds instead of the usual 30, and the state records it.
 
 ## Run and recover
 
@@ -81,6 +83,13 @@ preflight, one submission, bounded polling where applicable, and artifact save.
 OCR, image or audio input. Uploads require explicit user authorization for the content.
 `merge` joins a saved diarization with a timed transcript; it reads only local
 files and writes only `--output`.
+
+Before any request, `run` also checks where the paid result will go. An
+`--output` that is the input file blocks with "Artifact path must differ from
+the input file", and a missing or read-only output directory blocks with
+"Artifact directory is missing or not writable". Without these checks a
+successful submission could overwrite its input or end `reconciliation_required`
+with the answer lost.
 
 Choose a **new private state path** for new work. `run` refuses an existing
 state file, preventing accidental duplicate submissions. Do not delete or
@@ -115,7 +124,8 @@ image artifacts require PNG MIME/signature; SpeechCore artifacts contain validat
 transcript JSON. Diarization artifacts contain the validated diarization JSON
 (`duration`, `num_speakers`, `minutes_charged` and timed `speaker` segments); any
 other answer is `reconciliation_required`. A `merge` artifact contains the speaker
-transcript and the SHA-256 of both inputs. Transcription produces no artifacts
+transcript as JSON (with the SHA-256 of both inputs), WebVTT, SRT or RTTM; the
+envelope's artifact provenance carries the input hashes in every format. Transcription produces no artifacts
 while it is blocked. Invalid MIME, empty bodies and error-shaped JSON from an async
 job produce `poll_error` with the same provider job ID, not a completed artifact.
 These checks do not replace full image decoding, visual review, or factual

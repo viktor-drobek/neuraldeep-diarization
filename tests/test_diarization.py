@@ -107,12 +107,16 @@ class DiarizationTests(unittest.TestCase):
         for needle in ("POST /v1/audio/diarize", "GET /v1/audio/diarize/quota", "audio:diarize", "0.3",
                        "python3 scripts/client.py check diarize --minutes", "python3 scripts/client.py run diarize",
                        "python3 scripts/client.py merge", "/v1/audio/transcriptions", "neuraldeep-transcriptions",
-                       "neuraldeep-speechcore", "500 MB", "4 hours", "8 speakers", "`limit - used`"):
+                       "neuraldeep-speechcore", "500 MB", "4 hours", "8 speakers", "`limit - used`",
+                       "--format vtt", "--format srt", "--format rttm", "<v SPEAKER_0>", "max(120, 30 * minutes)"):
             self.assertIn(needle, text)
         relay = (ROOT / "STARTER_RELAY.md").read_text(encoding="utf-8")
         self.assertRegex(relay, r"\| Diarization \| `/v1/audio/diarize/quota`: `unit: minute`, `tier`, `day` and `month`")
+        for needle in ("WebVTT, SRT or RTTM", "Artifact directory is missing or not writable"):
+            self.assertIn(needle, relay)
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("/v1/audio/diarize", readme)
+        self.assertIn("WebVTT, SRT or RTTM", readme)
 
     def test_skill_declares_its_transcription_dependency(self):
         head = skill().split("---", 2)[1]

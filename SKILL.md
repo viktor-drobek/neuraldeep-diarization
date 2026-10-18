@@ -71,7 +71,9 @@ Then run `merge` (section 3). It needs no key and makes no network call.
 - `check diarize --minutes N`: read-only preflight for `N` minutes of audio.
 - `run diarize --file AUDIO --minutes N`: preflight, then one billed
   `POST /v1/audio/diarize`, then the validated JSON is saved to `--output`.
-- `merge --diarization FILE --transcript FILE`: offline speaker transcript.
+- `merge --diarization FILE --transcript FILE [--format json|vtt|srt]`: offline
+  speaker transcript; `merge --diarization FILE --format rttm` converts the
+  diarization alone to RTTM.
 - `resume` is refused: the call is synchronous, there is no provider job.
 
 `--minutes` is the length of the audio in whole minutes, rounded up, verified
@@ -124,10 +126,17 @@ It reports `ready` with the observed buckets, or `blocked` with the reason.
 python3 scripts/client.py run diarize --file meeting.mp3 --minutes 3 --state diarize-state.json --output diarization.json
 ```
 
-`run` refuses an existing `--state` path or a file over 500 MB before any
-network call, and the preflight refuses more than 240 minutes (4 hours) before
-the POST. On success the envelope is `completed` and `diarization.json` holds
-the provider's answer:
+Before any network call, `run` refuses:
+- an existing `--state` path;
+- an `--output` that is the audio file itself, or whose directory is missing or
+  not writable, since a paid answer must have somewhere to go;
+- a file over 500 MB.
+
+The preflight also refuses more than 240 minutes (4 hours) before the POST.
+The answer arrives on the POST itself, so the helper waits for it
+`max(120, 30 * minutes)` seconds (two hours for four hours of audio) and records
+that in the state's `timeouts`. On success the envelope is `completed` and
+`diarization.json` holds the provider's answer:
 
 ```json
 {"duration": 61.0, "num_speakers": 2, "minutes_charged": 2,
@@ -144,9 +153,10 @@ error or a timeout ends `reconciliation_required`: the minutes may be charged.
 python3 scripts/client.py merge --diarization diarization.json --transcript transcript.json --output speakers.json
 ```
 
-Each transcript segment goes to the speaker whose diarization segments overlap
-it most; a tie goes to the speaker who appeared first. A segment that overlaps
-no speaker keeps `speaker: null` and is counted in `unassigned_segments`.
+Both inputs are first ordered by time. Each transcript segment goes to the
+speaker whose diarization segments overlap it most; a tie (equal to the
+microsecond) goes to the speaker who spoke first. A segment that overlaps no
+speaker keeps `speaker: null` and is counted in `unassigned_segments`.
 Consecutive segments of one speaker are joined into a turn, and empty text is
 skipped. `speakers.json` also records the SHA-256 of both inputs:
 
@@ -160,6 +170,27 @@ skipped. `speakers.json` also records the SHA-256 of both inputs:
 
 `merge` blocks when either input has another shape, or when `--output` is one
 of the inputs. Both recordings must be the same audio: the helper cannot check that.
+The envelope's artifact records the SHA-256 of the inputs in every format.
+
+### Subtitles and RTTM
+
+```bash
+python3 scripts/client.py merge --diarization diarization.json --transcript transcript.json --format vtt --output speakers.vtt
+python3 scripts/client.py merge --diarization diarization.json --transcript transcript.json --format srt --output speakers.srt
+python3 scripts/client.py merge --diarization diarization.json --format rttm --output diarization.rttm
+```
+
+- `--format vtt` writes WebVTT, the W3C format, with one cue per turn and the
+  speaker in a voice tag, for example `<v SPEAKER_0>Hello there. Hi.`; `&`, `<`
+  and `>` are escaped.
+- `--format srt` writes numbered SRT cues. SRT has no speaker field, so the
+  speaker is a prefix, for example `SPEAKER_0: Hello there. Hi.`
+- In both, a turn without a speaker has no voice tag or prefix, line breaks
+  inside a turn become spaces, and every cue lasts at least 1 ms.
+- `--format rttm` needs no transcript: it converts the saved diarization to
+  standard RTTM (NIST), one `SPEAKER` line per segment, with the diarization
+  file name as the file ID and whitespace in names replaced by `_`. It costs
+  nothing, unlike asking the provider for RTTM.
 
 ## Diarization API (reference)
 
@@ -175,7 +206,8 @@ and answers synchronously. The provider documents:
   sometimes left without a speaker.
 
 The helper sends only the audio file: no `response_format` and no
-`min_duration`, so the answer is always the JSON it can validate.
+`min_duration`, so the answer is always the JSON it can validate. For RTTM, use
+`merge --format rttm` on the saved JSON.
 
 ---
 
@@ -184,7 +216,8 @@ The helper sends only the audio file: no `response_format` and no
 1. **Verify the audio length** locally and round it up to whole minutes.
 2. **Preflight** with `check diarize --minutes N`; read the envelope's `errors`.
 3. **Diarize** with `run diarize`, to a new private state path.
-4. **Merge** with a timed transcript of the same audio for a speaker transcript.
+4. **Merge** with a timed transcript of the same audio for a speaker transcript,
+   as JSON, WebVTT or SRT; or convert the diarization alone to RTTM.
 
 ## Cost & limits
 

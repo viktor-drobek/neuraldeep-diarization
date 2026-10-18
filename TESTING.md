@@ -76,10 +76,53 @@ it) made only read-only GETs:
 No `run diarize` was sent. The response shape the helper validates is the one
 the provider documents; it has not been observed live.
 
+## Subtitle and RTTM formats
+
+`merge --format json|vtt|srt|rttm` (default `json`). Seven shared tests were
+added first; six failed because `to_webvtt`, `to_srt` and `to_rttm` did not
+exist. The seventh, on the flag rules, passed because argparse refused the
+unknown flag, and now guards the rules themselves. The merge case of the UTF-8
+test now also writes WebVTT. WebVTT uses voice tags and escapes `&`, `<` and
+`>`; SRT prefixes the speaker; RTTM is converted locally from the validated
+diarization JSON, with no transcript and no `response_format` sent to the
+provider. The envelope's artifact provenance carries the input hashes.
+
+## Cross-review fixes
+
+A cross-review by three reviewers (claude opus, coddy gpt-6.1-sol, coddy
+gemma-4-31b), with every finding verified offline, led to eight changes. One
+test each was added first; seven failed, and the 500 MB cap test passed because
+it only adds missing coverage:
+
+1. The diarization POST waited only the 30 s default for an answer that may
+   take longer on a long file, and a timeout strands charged minutes as
+   `reconciliation_required`. It now waits `diarize_timeout(minutes)` =
+   `max(120, 30 * minutes)` seconds, recorded in `timeouts.request_seconds`.
+2. `run` sent the billed request before checking `--output`: an output equal to
+   `--file` replaced the audio with the answer, and a missing directory lost a
+   paid answer. Every service's `run` now blocks both before any request.
+3. Speaker labels were not flattened in WebVTT and SRT, so a label with line
+   breaks could inject a cue; empty labels gave `<v >`. Labels are flattened
+   and an empty one counts as no speaker.
+4. The 1 ms minimum cue length was applied before rounding to milliseconds and
+   could still give a zero-length cue; it is now applied after.
+5. `finite()` raised `OverflowError` on integers too large for a float; it now
+   returns false, so such input blocks or needs reconciliation.
+6. `merge` followed file order: an unsorted transcript built turns out of order,
+   and ties went to the first speaker listed, not the first to speak. Both
+   inputs are now sorted by `(start, end)`.
+7. Float error broke ties between equal overlaps; overlaps are rounded to the
+   microsecond before comparing.
+8. The 500 MB cap had no test of its value or of its inclusive boundary.
+
+Each of 11 mutations of these fixes fails a test. Not changed, with reasons in
+the review: zero-length transcript segments stay unassigned; `minutes_charged`
+is not compared with `--minutes`; the upload is built in memory, as for OCR.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **93 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **108 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.
 - Fenced Python examples parsed with `ast.parse`; Bash examples passed `bash -n`.
