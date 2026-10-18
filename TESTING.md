@@ -246,10 +246,25 @@ input must exist" check before the state would have changed transcription's
 blocked `run`, which still leaves a state file. The test, for diarize and OCR,
 failed first, and its mutation fails it, on Python 3.14 and 3.10.
 
+## Eighth cross-review
+
+An eighth round found two low items:
+
+1. The U+FFFD repair added for non-UTF-8 file names also ran on speaker labels,
+   so `--format rttm` merged distinct labels with lone low surrogates (such as
+   `\udce9` and `\udcea`) into one speaker, where the other formats block. The
+   repair now applies to the file ID only; such labels block with "Input text
+   is not valid Unicode". The test failed first.
+2. The input-is-the-state test used one path string for both, so comparing the
+   strings instead of `same_file()` still passed; it now also covers a dangling
+   symlink to the future state file.
+
+Each of 3 mutations fails a test, on Python 3.14 and 3.10.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **129 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **130 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.
