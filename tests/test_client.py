@@ -1487,6 +1487,7 @@ class SafetyTests(unittest.TestCase):
         return bytes(sock.first)
 
     def test_request_streams_a_body_with_its_length_and_closes_it(self):
+        from unittest.mock import MagicMock  # not every sibling suite imports it
         with tempfile.TemporaryDirectory() as tmp:
             audio = Path(tmp) / "a.wav"
             audio.write_bytes(b"q" * 30000)
