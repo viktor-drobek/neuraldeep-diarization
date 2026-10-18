@@ -59,10 +59,15 @@ speaker, join its segments by time with a transcript of the same recording:
    `POST /v1/audio/transcriptions`, the **neuraldeep-transcriptions** skill.
    That skill blocks transcription today, until its remaining-quota endpoint is
    verified, so it cannot produce the transcript yet.
-2. Or a transcript JSON saved by a **neuraldeep-speechcore** `resume`, which has
-   the same `segments` shape. SpeechCore can also diarize on its own.
+2. Or a transcript JSON saved by a **neuraldeep-speechcore** `resume` of an
+   existing SpeechCore job, which has the same `segments` shape.
+   SpeechCore uploads are blocked too, so it cannot transcribe a new recording either.
 
-Then run `merge` (section 3). It needs no key and makes no network call.
+So for a new recording no skill can make the transcript today. **Before paying
+for a diarization to build a speaker transcript, confirm a timed transcript of
+the same audio already exists**; if it does not, tell the user and stop, unless
+they want the speaker turns alone. Then run `merge` (section 3). It needs no
+key and makes no network call.
 
 ## What the helper does
 
@@ -122,8 +127,8 @@ It reports `ready` with the observed buckets, or `blocked` with the reason.
 ## 2. Diarize a recording (billed)
 
 ```bash
-# meeting.mp3 is 2 min 40 s long, so it costs 3 minutes. Verify the length locally first.
-python3 scripts/client.py run diarize --file meeting.mp3 --minutes 3 --state diarize-state.json --output diarization.json
+# meeting.mp3 is 61 s long, so it costs 2 minutes. Verify the length locally first.
+python3 scripts/client.py run diarize --file meeting.mp3 --minutes 2 --state diarize-state.json --output diarization.json
 ```
 
 Before any network call, `run` refuses:
@@ -190,7 +195,7 @@ python3 scripts/client.py merge --diarization diarization.json --format rttm --o
   inside a turn become spaces, and every cue lasts at least 1 ms.
 - `--format rttm` needs no transcript: it converts the saved diarization to
   standard RTTM (NIST), one `SPEAKER` line per segment, with the diarization
-  file name as the file ID and whitespace in names replaced by `_`. It costs
+  file name without its extension as the file ID and whitespace in names replaced by `_`. It costs
   nothing, unlike asking the provider for RTTM.
 
 ## Diarization API (reference)
@@ -214,11 +219,14 @@ The helper sends only the audio file: no `response_format` and no
 
 ## Workflow summary
 
-1. **Verify the audio length** locally and round it up to whole minutes.
-2. **Preflight** with `check diarize --minutes N`; read the envelope's `errors`.
-3. **Diarize** with `run diarize`, to a new private state path.
-4. **Merge** with a timed transcript of the same audio for a speaker transcript,
-   as JSON, WebVTT or SRT; or convert the diarization alone to RTTM.
+1. **Confirm a timed transcript** of the same audio exists when the user wants a
+   speaker transcript; neuraldeep-transcriptions and SpeechCore uploads are
+   blocked today, so tell the user before spending minutes if there is none.
+2. **Verify the audio length** locally and round it up to whole minutes.
+3. **Preflight** with `check diarize --minutes N`; read the envelope's `errors`.
+4. **Diarize** with `run diarize`, to a new private state path.
+5. **Merge** with the timed transcript for a speaker transcript, as JSON, WebVTT
+   or SRT; or convert the diarization alone to RTTM.
 
 ## Cost & limits
 

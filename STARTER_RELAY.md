@@ -82,13 +82,15 @@ preflight, one submission, bounded polling where applicable, and artifact save.
 `--payload` reads JSON for Search or image generation; `--file` reads a local
 OCR, image or audio input. Uploads require explicit user authorization for the content.
 `merge` joins a saved diarization with a timed transcript; it reads only local
-files and writes only `--output`.
+files and writes only `--output`. Its inputs must be strict UTF-8 JSON (a byte
+order mark is fine), and a missing input or an unwritable output blocks with a
+message naming it, never the advice meant for billed jobs.
 
 Before any request, `run` also checks where the paid result will go. An
 `--output` that is the input file blocks with "Artifact path must differ from
 the input file", one that is a directory with "Artifact path is a directory",
-and a missing or read-only output directory (the one the path names, before
-symlinks are resolved) blocks with
+and an output directory (the one the path names, before symlinks are
+resolved) that is missing or not readable, writable and searchable blocks with
 "Artifact directory is missing or not writable". Without these checks a
 successful submission could overwrite its input or end `reconciliation_required`
 with the answer lost.

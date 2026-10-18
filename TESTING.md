@@ -148,10 +148,37 @@ appearance" was rejected: the provider documents it, as it does the note that
 the first seconds of a turn are sometimes left without a speaker. Each of 7
 mutations of these fixes fails a test.
 
+## Third cross-review
+
+A third round, again without the earlier answers, found no way to lose billed
+minutes in normal use and led to seven smaller changes. Each test was written
+first and failed, except the `--output` equal to `--diarization` case, which
+only adds coverage:
+
+1. The docs offered SpeechCore as a transcript source without saying its uploads
+   are blocked too, so an agent could pay for a diarization and only then find
+   no transcript. SKILL.md now says so, and its workflow starts by confirming a
+   timed transcript exists; AGENTS.md and README agree. A documentation test
+   checks it.
+2. The output directory check tested only write permission; `mkstemp` also
+   needs search permission and the directory fsync read permission. It now
+   requires all three, with `0o600` and `0o300` directories tested.
+3. `merge` accepted UTF-16 and UTF-32 and surrogate bytes, because
+   `json.loads(bytes)` detects encodings. It now decodes strict `utf-8-sig`.
+4. A missing input, an unwritable output and a lone surrogate escape fell back
+   to the advice for billed jobs. Each now blocks with its own message.
+5. The run example cost 3 minutes while the answer below it charged 2; the
+   example is now the provider's 61 s file at `--minutes 2`.
+6. The RTTM file ID is the diarization file name without its extension; the
+   docs said "file name".
+7. `--output` equal to `--diarization` is now tested for JSON and RTTM.
+
+Each of 8 mutations of these fixes fails a test.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **114 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **118 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.
 - Fenced Python examples parsed with `ast.parse`; Bash examples passed `bash -n`.

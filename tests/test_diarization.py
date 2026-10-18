@@ -126,6 +126,20 @@ class DiarizationTests(unittest.TestCase):
         for name in names:
             self.assertIn(name, ignored)
 
+    def test_docs_say_no_new_transcript_can_be_made_today(self):
+        text = skill()
+        self.assertNotIn("can also diarize on its own", text)
+        self.assertIn("SpeechCore uploads are blocked", text)
+        summary = text.split("## Workflow summary", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("1. **Confirm a timed transcript** of the same audio exists", summary)
+        self.assertIn("SpeechCore uploads are blocked", (ROOT / "AGENTS.md").read_text(encoding="utf-8"))
+
+    def test_examples_match_their_numbers(self):
+        text = skill()
+        self.assertIn("meeting.mp3 is 61 s long, so it costs 2 minutes", text)
+        self.assertIn("run diarize --file meeting.mp3 --minutes 2 ", text)
+        self.assertIn("file name without its extension", text)
+
     def test_skill_declares_its_transcription_dependency(self):
         head = skill().split("---", 2)[1]
         self.assertIn("    depends_on:\n      - neuraldeep-transcriptions\n", head)
