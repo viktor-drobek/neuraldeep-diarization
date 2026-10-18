@@ -139,7 +139,8 @@ Before any network call, `run` refuses:
 - an existing `--state` path, a `--state` that is the `--file` itself,
   or an `--output` that is the `--state` file (also under a case alias);
 - an `--output` that is the audio file itself (also through a link or a case
-  alias) or a directory, a name the file system refuses, another user's file in
+  alias), a directory, a FIFO, socket or device (also behind a symlink), a name
+  the file system refuses, another user's file in
   a sticky directory such as `/tmp`, or whose directory is missing or not
   writable, since a paid answer must have somewhere to go;
 - an input that is not a readable regular file, or one over the documented
@@ -265,7 +266,7 @@ when it happens:
 | Code | What the provider documents | What to do |
 |---|---|---|
 | `400` | Invalid request body, or a request longer than allowed | Fix the input; a billed submission is reconciled first |
-| `401` | Key invalid or revoked, or not subscribed to the model | Check the key in `NEURALDEEP_DIARIZATION_API_KEY` (or `NEURALDEEP_API_KEY`) in the environment or `~/.coddy/.env` |
+| `401` | Key invalid or revoked, or not subscribed to the model | Ask the user to check the key in `NEURALDEEP_DIARIZATION_API_KEY` (or `NEURALDEEP_API_KEY`) in the environment or `~/.coddy/.env`; never read the file yourself |
 | `408` | Upstream timeout after the provider's own retries | Reconcile a submission; resume a job |
 | `422` | A parameter outside the allowed values | Fix the parameter |
 | `429` | A quota or rate limit; `X-Window` names the session or week window and `Retry-After` the wait | Check the quota with `check`; wait, then decide explicitly |

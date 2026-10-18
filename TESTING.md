@@ -376,10 +376,22 @@ closes them, and the suite now runs clean under `-W always::ResourceWarning`.
 The Error handling tables say the key may be in the environment or `~/.coddy/.env`,
 and the diarization SKILL.md no longer mentions `resume`, which it refuses.
 
+## Thirteenth cross-review
+
+Two low items. The 401 row of the Error handling table told the agent to check
+the key in `~/.coddy/.env`, against the rule never to read that file; it now
+asks the user to check it, and the shared documentation test requires "never
+read the file yourself". `run` accepted an existing `--output` that is a FIFO, a
+socket or a device (also behind a symlink): after the paid POST, `atomic_write()`
+replaced that node with a regular file, which breaks `/dev/null` for everyone
+when run as root. It now blocks before any request with "Artifact path is not a
+regular file"; a dangling symlink is still replaced like a missing file. Both
+tests failed first; each of 3 mutations fails one.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **146 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **147 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed; under `-W always::ResourceWarning`: no warning.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.
