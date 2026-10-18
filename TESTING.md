@@ -364,11 +364,23 @@ what each means at preflight (`blocked`), on submission
 that the table lists every code of `ERROR_HINTS`. The three tests failed first;
 each of 5 mutations fails one.
 
+## Twelfth cross-review
+
+Three low items. `read_dotenv()` read the file as strict UTF-8, so one stray
+byte (a cp1251 comment) hid every key in it; Coddy reads it line by line as
+bytes. It now decodes with replacement, and a test with a cp1251 comment next to
+a key failed first. SKILL.md said more than 240 minutes is refused before any
+request; that check runs after the free GETs, before the billed request, and the
+text says so now. A cap test left two upload files open (`ResourceWarning`); it
+closes them, and the suite now runs clean under `-W always::ResourceWarning`.
+The Error handling tables say the key may be in the environment or `~/.coddy/.env`,
+and the diarization SKILL.md no longer mentions `resume`, which it refuses.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **145 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
-- The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
+  **146 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+- The same suite under `LC_ALL=C PYTHONUTF8=0`: passed; under `-W always::ResourceWarning`: no warning.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.
 - Fenced Python examples parsed with `ast.parse`; Bash examples passed `bash -n`.

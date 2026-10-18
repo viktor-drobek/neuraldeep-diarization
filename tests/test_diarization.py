@@ -146,6 +146,8 @@ class DiarizationTests(unittest.TestCase):
         self.assertIn("file name without its extension", text)
         self.assertIn("speaker who spoke first in the recording", text)
         self.assertIn("an `--output` that is the `--state` file", text)
+        self.assertIn("more than 240 minutes before the billed request", text)
+        self.assertNotIn("so `resume` uses the same key", text)  # resume is refused here
         self.assertIn("a segment without a speaker has no voice tag or prefix", text)
         self.assertNotIn("turn without a speaker", text)
 

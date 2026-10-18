@@ -95,8 +95,8 @@ from the shared `NEURALDEEP_API_KEY`. Each is taken from the environment first,
 then from `${CODDY_HOME:-~/.coddy}/.env`, the file Coddy loads at startup, so
 a key added there works without a restart. A variable may hold several keys
 separated by commas: before a billed request the helper uses the first key
-whose free subscription and quota checks pass, and records its number (never
-the key) in the state, so `resume` uses the same key. The Coddy provider file
+whose free subscription and quota checks pass, and records its variable and
+number (never the key) in the state. The Coddy provider file
 is not read. The helper never prints a key. Without one it returns `blocked`,
 naming the variable: ask the user to add it to `~/.coddy/.env` themselves,
 for example `NEURALDEEP_DIARIZATION_API_KEY=sk-...`, never in the chat.
@@ -265,7 +265,7 @@ when it happens:
 | Code | What the provider documents | What to do |
 |---|---|---|
 | `400` | Invalid request body, or a request longer than allowed | Fix the input; a billed submission is reconciled first |
-| `401` | Key invalid or revoked, or not subscribed to the model | Check the key in `NEURALDEEP_DIARIZATION_API_KEY` (or `NEURALDEEP_API_KEY`) in `~/.coddy/.env` |
+| `401` | Key invalid or revoked, or not subscribed to the model | Check the key in `NEURALDEEP_DIARIZATION_API_KEY` (or `NEURALDEEP_API_KEY`) in the environment or `~/.coddy/.env` |
 | `408` | Upstream timeout after the provider's own retries | Reconcile a submission; resume a job |
 | `422` | A parameter outside the allowed values | Fix the parameter |
 | `429` | A quota or rate limit; `X-Window` names the session or week window and `Retry-After` the wait | Check the quota with `check`; wait, then decide explicitly |
@@ -277,7 +277,7 @@ Any other status is reported as `HTTP <code>` without a hint. A transport
 failure or an unreadable answer is `Transport or response error`, with the same
 outcomes.
 
-- A file over the documented 500 MB, or more than 240 minutes, is refused before any request.
+- A file over the documented 500 MB is refused before any request, and more than 240 minutes before the billed request.
 
 ## Privacy & security
 
