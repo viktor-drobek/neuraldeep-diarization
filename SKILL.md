@@ -137,7 +137,8 @@ Before any network call, `run` refuses:
   alias) or a directory, a name the file system refuses, another user's file in
   a sticky directory such as `/tmp`, or whose directory is missing or not
   writable, since a paid answer must have somewhere to go;
-- a file over the documented 500 MB limit.
+- an input that is not a readable regular file, or one over the documented
+  500 MB limit.
 
 The preflight also refuses more than 240 minutes (4 hours) before the POST.
 The audio is streamed in blocks of 8 KB (http.client's block size) with a normal `Content-Length`, so no
