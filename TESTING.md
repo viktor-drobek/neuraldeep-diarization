@@ -175,10 +175,31 @@ only adds coverage:
 
 Each of 8 mutations of these fixes fails a test.
 
+## Fourth cross-review
+
+A fourth round found one medium defect, confirmed by CI, and three small ones:
+
+1. On Python 3.10 to 3.12, `Path.is_dir()` raises `PermissionError` for a path
+   inside a directory without search permission, so the output check crashed to
+   the generic message and the shared test errored on the 3.10 CI job (3.14
+   locally hid it). It now uses `os.path.isdir()`. Verified in Docker with
+   `python:3.10-slim` as a non-root user: 2 errors before, green after.
+2. In a sticky directory such as `/tmp`, rename cannot replace another user's
+   file, so a paid answer could be lost after the POST. `replace_denied()` now
+   blocks that before any request; the test fakes another user with a patched
+   `geteuid` and also covers the owner, a new file and a non-sticky directory.
+3. A diarization file name that is not UTF-8 made `--format rttm` blame the
+   content; the RTTM file ID now shows such bytes as U+FFFD.
+4. A tie test now has the first speaker last in alphabetical order.
+
+Tests 2 and 3 failed first; 4 only adds coverage. Each of 4 mutations fails a
+test.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **118 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **121 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
+- The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.
 - Fenced Python examples parsed with `ast.parse`; Bash examples passed `bash -n`.

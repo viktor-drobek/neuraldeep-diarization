@@ -91,7 +91,9 @@ Before any request, `run` also checks where the paid result will go. An
 the input file", one that is a directory with "Artifact path is a directory",
 and an output directory (the one the path names, before symlinks are
 resolved) that is missing or not readable, writable and searchable blocks with
-"Artifact directory is missing or not writable". Without these checks a
+"Artifact directory is missing or not writable". An existing output owned by
+another user in a sticky directory such as `/tmp`, which rename cannot replace,
+blocks with "Artifact path belongs to another user in a sticky directory". Without these checks a
 successful submission could overwrite its input or end `reconciliation_required`
 with the answer lost.
 

@@ -133,9 +133,9 @@ python3 scripts/client.py run diarize --file meeting.mp3 --minutes 2 --state dia
 
 Before any network call, `run` refuses:
 - an existing `--state` path;
-- an `--output` that is the audio file itself or a directory, or whose
-  directory is missing or not writable, since a paid answer must have somewhere
-  to go;
+- an `--output` that is the audio file itself or a directory, another user's
+  file in a sticky directory such as `/tmp`, or whose directory is missing or not
+  writable, since a paid answer must have somewhere to go;
 - a file over 500 MB.
 
 The preflight also refuses more than 240 minutes (4 hours) before the POST.
