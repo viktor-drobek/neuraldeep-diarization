@@ -89,8 +89,10 @@ message naming it, never the advice meant for billed jobs.
 Before any request, `run` also checks where the paid result will go. An
 `--output` that is the input file, also through a symlink, hard link or case
 alias, blocks with "Artifact path must differ from the input file", a name the
-file system refuses (such as one longer than 255 bytes) with "Artifact path is
-not usable", one that is a directory with "Artifact path is a directory",
+file system refuses (such as one longer than 255 bytes, or a character vfat or
+exFAT reject, found by creating and removing the name) with "Artifact path is
+not usable", an output that is the state file, also through a case alias, with
+"State and artifact paths must differ", one that is a directory with "Artifact path is a directory",
 and an output directory (the one the path names, before symlinks are
 resolved) that is missing or not readable, writable and searchable blocks with
 "Artifact directory is missing or not writable". An existing output owned by

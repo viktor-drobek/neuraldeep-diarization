@@ -164,8 +164,8 @@ Both inputs are first ordered by time. Each transcript segment goes to the
 speaker whose diarization segments overlap it most; a tie (equal to the
 microsecond) goes to the speaker who spoke first. A segment that overlaps no
 speaker keeps `speaker: null` and is counted in `unassigned_segments`.
-Consecutive segments of one speaker are joined into a turn, and empty text is
-skipped. `speakers.json` also records the SHA-256 of both inputs:
+Consecutive segments of one speaker are joined into a turn; unassigned segments
+stay separate turns, and empty text is skipped. `speakers.json` also records the SHA-256 of both inputs:
 
 ```json
 {"speakers": ["SPEAKER_0", "SPEAKER_1"],
@@ -192,8 +192,8 @@ python3 scripts/client.py merge --diarization diarization.json --format rttm --o
   example `<v SPEAKER_0>Hello there.`; `&`, `<` and `>` are escaped.
 - `--format srt` writes numbered SRT cues, one per transcript segment. SRT has
   no speaker field, so the speaker is a prefix, for example `SPEAKER_0: Hello there.`
-- In both, a turn without a speaker has no voice tag or prefix, line breaks
-  inside a turn become spaces, and every cue lasts at least 1 ms.
+- In both, a segment without a speaker has no voice tag or prefix, line breaks
+  inside a segment become spaces, and every cue lasts at least 1 ms.
 - `--format rttm` needs no transcript: it converts the saved diarization to
   standard RTTM (NIST), one `SPEAKER` line per segment, with the diarization
   file name without its extension as the file ID and whitespace in names replaced by `_`. It costs

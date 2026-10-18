@@ -216,10 +216,30 @@ A fifth round found one medium and four low edge cases:
 Tests 1, 2, 3 and 5 failed first; 4 is part of the RTTM test. Each of 5
 mutations fails a test, on Python 3.14 and 3.10.
 
+## Sixth cross-review
+
+A sixth round found four low items:
+
+1. `--state` and `--output` differing only in case passed on a case-insensitive
+   file system, because the state did not exist when they were compared; the
+   answer then replaced the state and was lost. `same_file()` now also runs
+   once the state exists, before any request. The test simulates a
+   case-insensitive `os.path.samefile()`.
+2. Some file systems (vfat, exFAT, SMB) refuse a name only on create, so a
+   lookup could not find it. A new output name is now created with `O_EXCL` and
+   removed again before the preflight; the test simulates an `EINVAL` create
+   and checks that a usable probe leaves no file.
+3. Consecutive unassigned segments were joined into one `speaker: null` turn;
+   they now stay separate turns.
+4. SKILL.md said "turn" where WebVTT and SRT now write one cue per segment.
+
+All four tests failed first. Each of 4 mutations fails a test, on Python 3.14
+and 3.10.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **125 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **128 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.

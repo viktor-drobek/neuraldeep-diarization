@@ -139,6 +139,8 @@ class DiarizationTests(unittest.TestCase):
         self.assertIn("meeting.mp3 is 61 s long, so it costs 2 minutes", text)
         self.assertIn("run diarize --file meeting.mp3 --minutes 2 ", text)
         self.assertIn("file name without its extension", text)
+        self.assertIn("a segment without a speaker has no voice tag or prefix", text)
+        self.assertNotIn("turn without a speaker", text)
 
     def test_skill_declares_its_transcription_dependency(self):
         head = skill().split("---", 2)[1]
