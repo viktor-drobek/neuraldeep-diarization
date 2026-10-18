@@ -115,8 +115,10 @@ class DiarizationTests(unittest.TestCase):
         for needle in ("WebVTT, SRT or RTTM", "Artifact directory is missing or not writable",
                        "documents no chunked or resumable upload", "streamed in blocks"):
             self.assertIn(needle, relay)
-        for needle in ("documents no chunked or resumable upload", "streamed in blocks"):
+        for needle in ("documents no chunked or resumable upload", "streamed in blocks", "8 KB"):
             self.assertIn(needle, text)
+        for doc in (text, relay, (ROOT / "AGENTS.md").read_text(encoding="utf-8")):
+            self.assertNotIn("64 KB", doc)  # http.client sends 8 KB blocks
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("/v1/audio/diarize", readme)
         self.assertIn("WebVTT, SRT or RTTM", readme)

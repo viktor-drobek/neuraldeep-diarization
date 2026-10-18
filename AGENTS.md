@@ -30,7 +30,7 @@ guard:
   SpeechCore job (SpeechCore uploads are blocked too), and writes JSON, WebVTT or SRT;
   `--format rttm` converts the diarization alone. SKILL.md tells agents to confirm a transcript
   exists before paying for a diarization meant for a speaker transcript.
-- The upload is streamed in 64 KB blocks; each block and the wait for the answer get
+- The upload is streamed in 8 KB blocks; each block and the wait for the answer get
   `max(120, 30 * minutes)` seconds. The provider documents no resumable upload, so a broken
   upload is never resent. `run` checks the output path before any request: a paid answer must
   not replace its input or be lost.

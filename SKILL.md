@@ -140,7 +140,7 @@ Before any network call, `run` refuses:
 - a file over the documented 500 MB limit.
 
 The preflight also refuses more than 240 minutes (4 hours) before the POST.
-The audio is streamed in blocks of 64 KB with a normal `Content-Length`, so no
+The audio is streamed in blocks of 8 KB (http.client's block size) with a normal `Content-Length`, so no
 copy of it is held in memory and a slow link does not cut the upload short:
 each block, and then the wait for the answer, gets `max(120, 30 * minutes)`
 seconds (two hours for four hours of audio), recorded in the state's

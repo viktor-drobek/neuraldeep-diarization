@@ -83,7 +83,7 @@ preflight, one submission, bounded polling where applicable, and artifact save.
 `--payload` reads JSON for Search or image generation; `--file` reads a local
 OCR, image or audio input. Uploads require explicit user authorization for the content.
 Every upload is streamed in blocks: the multipart body is read from the file
-64 KB at a time and sent with a normal `Content-Length`, so the socket timeout
+8 KB at a time (http.client's block size) and sent with a normal `Content-Length`, so the socket timeout
 bounds each block rather than the whole file, and no copy of the file is held
 in memory. Exactly the size checked before the request is sent; a file that
 shrinks meanwhile fails the request.
