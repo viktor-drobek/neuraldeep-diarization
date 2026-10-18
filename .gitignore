@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.env
+.env.*
+job-state.json
+result.bin
+# Private runtime files used by the SKILL.md examples
+diarize-state.json
+diarization.json
+transcript.json
+speakers.json
