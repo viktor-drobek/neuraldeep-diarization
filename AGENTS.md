@@ -60,17 +60,17 @@ Tests are offline: HTTP is mocked and no billed endpoint is called. Run them wit
 blanked so a real key can never be read:
 
 ```bash
-env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -B -m unittest discover -s tests
+env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexistent python3 -B -m unittest discover -s tests
 ```
 
 Before opening a PR, also run the suite under a non-UTF-8 locale and with encoding warnings on:
 
 ```bash
-env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent LC_ALL=C PYTHONUTF8=0 python3 -B -m unittest discover -s tests
+env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexistent LC_ALL=C PYTHONUTF8=0 python3 -B -m unittest discover -s tests
 ```
 
 ```bash
-env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests
+env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests
 ```
 
 - Work test-first: add the regression test, watch it fail, then fix. Say so in the commit.
@@ -154,8 +154,9 @@ it must equal the tag without the `v`:
 ## Coddy
 
 - Coddy loads this file from the workspace on its own; nothing needs configuring.
-- The skill reads the key from `${CODDY_HOME:-~/.coddy}/providers/neuraldeep/neuraldeep-auth.json`
-  (field `api_key`), then falls back to `NEURALDEEP_API_KEY`. Sign in with
-  `coddy providers login neuraldeep`; never ask the user to paste a key into the chat.
+- The skill reads its own `NEURALDEEP_DIARIZATION_API_KEY`, then the shared `NEURALDEEP_API_KEY`, each from the
+  environment, then from `${CODDY_HOME:-~/.coddy}/.env` (several keys separated by commas;
+  the first that passes the free checks is used). It does not read the Coddy provider file.
+  Ask the user to add a missing key to `~/.coddy/.env`; never ask for a key in the chat.
 - Run skill commands from the skill directory, and keep state files in a private directory
   outside the checkout.

@@ -39,8 +39,8 @@ Use this skill whenever the user needs:
 `blocked` is the final answer for that request, not a problem to solve. Tell the
 user what was blocked and why, then stop.
 
-- Never read, print or copy `${CODDY_HOME:-~/.coddy}/providers/neuraldeep/neuraldeep-auth.json`
-  or `NEURALDEEP_API_KEY` yourself. Only the helper uses the key.
+- Never read, print or copy `${CODDY_HOME:-~/.coddy}/.env`, `NEURALDEEP_DIARIZATION_API_KEY`
+  or `NEURALDEEP_API_KEY` yourself. Only the helper uses the keys.
 - Never call `POST /v1/audio/diarize` directly, with `curl`, Python or another
   SDK. That spends minutes the helper has not checked against the quota.
 - Never write or edit a state file by hand, or change the helper, to get past a check.
@@ -90,12 +90,16 @@ minutes the same way. Never guess it; the helper checks the quota against it.
 Python 3.10+ is sufficient; the helper uses only the standard library.
 Run commands from this skill's directory. No `curl`, `jq` or `httpx` is required.
 
-The helper first reads `api_key` from
-`${CODDY_HOME:-~/.coddy}/providers/neuraldeep/neuraldeep-auth.json`, then falls
-back to `NEURALDEEP_API_KEY` for missing, malformed, null, or empty file values.
-It never prints the key. If neither source works, it returns `blocked`; use
-`coddy providers login neuraldeep` or supply the environment variable securely.
-Do not use `jq -r .api_key` as a presence check: JSON null becomes the string `null`.
+The helper reads the key from `NEURALDEEP_DIARIZATION_API_KEY`, this skill's own variable, then
+from the shared `NEURALDEEP_API_KEY`. Each is taken from the environment first,
+then from `${CODDY_HOME:-~/.coddy}/.env`, the file Coddy loads at startup, so
+a key added there works without a restart. A variable may hold several keys
+separated by commas: before a billed request the helper uses the first key
+whose free subscription and quota checks pass, and records its number (never
+the key) in the state, so `resume` uses the same key. The Coddy provider file
+is not read. The helper never prints a key. Without one it returns `blocked`,
+naming the variable: ask the user to add it to `~/.coddy/.env` themselves,
+for example `NEURALDEEP_DIARIZATION_API_KEY=sk-...`, never in the chat.
 
 Read [Starter and Relay safety](STARTER_RELAY.md) before submitting work.
 Every billed operation must pass the helper's live subscription, public-price,
@@ -246,7 +250,7 @@ The helper sends only the audio file: no `response_format` and no
 
 ## Error handling
 
-- `401 Unauthorized`: invalid or revoked key. Run `coddy providers login neuraldeep` again.
+- `401 Unauthorized`: invalid or revoked key. Check the key in `NEURALDEEP_DIARIZATION_API_KEY`.
 - `429`: quota or rate limit. The helper reports `HTTP 429` without retrying or
   reading `Retry-After`; check the quota and decide explicitly before trying again.
 - Any HTTP or transport failure during preflight is reported as `blocked`.

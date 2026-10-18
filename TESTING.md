@@ -322,10 +322,38 @@ in the recording and that an `--output` equal to the `--state` blocks. Both
 tests failed first; removing `set_blocking` fails the new one. By the owner's
 decision no further review round was run.
 
+## Per-skill keys from Coddy's environment
+
+By the owner's request each skill now asks for its own key. `resolve_keys()`
+reads this skill's `NEURALDEEP_DIARIZATION_API_KEY`, then the shared
+`NEURALDEEP_API_KEY`; each from the environment first, then from
+`${CODDY_HOME}/.env`, which the helper parses itself with the rules of Coddy's
+loader (`internal/config/dotenv.go`: `export`, quotes, double-quote escapes,
+inline comments, the first assignment wins), so a key added there works without
+restarting Coddy. The first source with a usable key wins. A value may hold
+several keys separated by commas; `choose_key()` runs the free preflight for
+each in order and uses the first that passes, and the quota observation records
+the key's variable and number, never its value, so `resume` uses the key that
+submitted the job and blocks, leaving the state untouched, when that key is no
+longer configured. The Coddy provider file `neuraldeep-auth.json` is no longer
+read. The other services read `NEURALDEEP_SEARCH_API_KEY`,
+`NEURALDEEP_OCR_API_KEY`, `NEURALDEEP_IMAGES_API_KEY`,
+`NEURALDEEP_SPEECHCORE_API_KEY` and `NEURALDEEP_TRANSCRIPTIONS_API_KEY`.
+
+Six tests were added first and failed: the source order and fallback, the
+`.env` parser against the cases of Coddy's own test, the key choice for `check`
+and `run`, and resume with the recorded key. Every helper test now patches
+`resolve_keys`. Each of 10 mutations fails a test (shared before own, no
+fallback, `.env` before the environment, no `.env`, last assignment wins, `null`
+kept, only the first key tried, resume ignoring the record, no key record, an
+inline comment kept). `check` with no key prints `blocked` and names the
+variable and the file. No live call was made: the helper no longer reads the
+provider file that the earlier live checks used.
+
 ## Final results
 
-- `env -u NEURALDEEP_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **137 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+- `env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
+  **142 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.

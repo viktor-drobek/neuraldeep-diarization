@@ -52,7 +52,7 @@ class DiarizationTests(unittest.TestCase):
         self.assertIn("diarize", client.SYNCHRONOUS)
 
     def test_check_reads_limits_prices_and_quota_and_reports_ready(self):
-        with patch.object(client, "resolve_key", return_value="fixture"), \
+        with patch.object(client, "resolve_keys", return_value=("NEURALDEEP_API_KEY", ["fixture"])), \
                 patch.object(client, "request", side_effect=[limits(), prices(), quota()]) as req:
             code, result = run_cli(["check", "diarize", "--minutes", "3"])
         self.assertEqual(code, 0)
@@ -66,13 +66,13 @@ class DiarizationTests(unittest.TestCase):
 
     def test_check_blocks_without_minutes_or_when_the_day_is_spent(self):
         for argv, day_used in ((["check"], 0), (["check", "--minutes", "5"], 298)):
-            with self.subTest(argv=argv), patch.object(client, "resolve_key", return_value="fixture"), \
+            with self.subTest(argv=argv), patch.object(client, "resolve_keys", return_value=("NEURALDEEP_API_KEY", ["fixture"])), \
                     patch.object(client, "request", side_effect=[limits(), prices(), quota(day_used)]):
                 code, result = run_cli(argv)
             self.assertEqual((code, result["status"]), (1, "blocked"))
 
     def test_run_submits_once_and_saves_the_diarization(self):
-        with tempfile.TemporaryDirectory() as tmp, patch.object(client, "resolve_key", return_value="fixture"):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(client, "resolve_keys", return_value=("NEURALDEEP_API_KEY", ["fixture"])):
             audio, state, output = Path(tmp) / "meeting.wav", Path(tmp) / "state.json", Path(tmp) / "diarization.json"
             audio.write_bytes(b"RIFF fixture")
             responses = [limits(), prices(), quota(), diarization()]
@@ -149,6 +149,19 @@ class DiarizationTests(unittest.TestCase):
         self.assertIn("a segment without a speaker has no voice tag or prefix", text)
         self.assertNotIn("turn without a speaker", text)
 
+    def test_docs_ask_for_the_skill_key_in_coddy_env(self):
+        text = skill()
+        for needle in ("NEURALDEEP_DIARIZATION_API_KEY", "NEURALDEEP_API_KEY", "${CODDY_HOME:-~/.coddy}/.env",
+                       "separated by commas", "never in the chat"):
+            self.assertIn(needle, text)
+        for name in ("SKILL.md", "README.md", "AGENTS.md", "STARTER_RELAY.md", ".cursor/rules/client.mdc"):
+            doc = (ROOT / name).read_text(encoding="utf-8")
+            with self.subTest(doc=name):
+                self.assertNotIn("neuraldeep-auth.json", doc)
+                self.assertNotIn("providers login", doc)
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("NEURALDEEP_DIARIZATION_API_KEY=", readme)
+
     def test_skill_declares_its_transcription_dependency(self):
         head = skill().split("---", 2)[1]
         self.assertIn("    depends_on:\n      - neuraldeep-transcriptions\n", head)
@@ -173,7 +186,7 @@ class DiarizationTests(unittest.TestCase):
         self.assertEqual(len(section), 2, "missing blocked section")
         head, rules = section[0], section[1].split("\n## ", 1)[0]
         self.assertLess(len(head.split("\n# ", 1)[1]), 1500, "blocked section must come early")
-        for needle in ("final answer", "neuraldeep-auth.json", "NEURALDEEP_API_KEY",
+        for needle in ("final answer", "${CODDY_HOME:-~/.coddy}/.env", "NEURALDEEP_DIARIZATION_API_KEY", "NEURALDEEP_API_KEY",
                        "POST /v1/audio/diarize", "by hand", "supervisor", "undocumented", "reconciliation_required"):
             self.assertIn(needle, rules)
         self.assertIn("never bypass", text.split("---", 2)[1])
