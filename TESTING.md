@@ -388,10 +388,41 @@ when run as root. It now blocks before any request with "Artifact path is not a
 regular file"; a dangling symlink is still replaced like a missing file. Both
 tests failed first; each of 3 mutations fails one.
 
+## Paying from the wallet
+
+By the owner's request a key in wallet mode can now pay, but only with the
+user's approval. A live read-only `GET /v1/limits` (2026-10-19, the owner's key)
+showed `key.billing_mode: wallet`, `wallet.balance_rub` and a per-key
+`key.cap` (`spend_cap_rub`, `spent_rub`, `cap_blocked`; not in the provider's
+documentation). The provider documents that exactly one scheme is active and
+that the wallet pays every operation at the public price list.
+
+- `preflight()` reads the billing mode; for a wallet key `wallet_quote()` skips
+  the subscription quota and estimates units x the price row's `unit_rub` or
+  `rub_per_min`, rounded up to whole kopecks, and blocks when the estimate
+  exceeds the wallet balance or the key's spending cap, or when `cap_blocked`.
+- `choose_key()` prefers a subscription key; a wallet key is used only when none
+  fits and only up to `--wallet-limit`, the roubles the user approved. Without
+  it, `check` and `run` end `wallet_approval_required` (nothing sent) with the
+  estimate, the balance and the exact command to run after a yes.
+- SpeechCore and transcription stay disabled from the wallet too.
+- The subscription guard now names the failing condition (billing mode, key
+  status or tier) instead of one combined message.
+- SKILL.md has a "Paying from the wallet" section telling the agent to show the
+  warning and wait for an explicit yes; AGENTS.md forbids passing
+  `--wallet-limit` without the user's approval; STARTER_RELAY.md lists the new
+  status.
+
+Nine tests failed first (the flag test passed only because argparse refused the
+unknown flag); each of 10 mutations fails a test. A live read-only
+`check diarize --minutes 2` with the owner's wallet key returned
+`wallet_approval_required`: about 0.60 RUB (2 x 0.3 RUB for `audio:diarize`). No
+billed request was sent.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **147 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **156 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed; under `-W always::ResourceWarning`: no warning.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.

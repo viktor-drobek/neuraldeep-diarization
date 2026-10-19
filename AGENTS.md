@@ -82,6 +82,8 @@ env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexist
 
 ## Safety rules
 
+- Never pass `--wallet-limit` without the user's explicit approval of that amount: a wallet
+  key spends money. `wallet_approval_required` is a question for the user, not an error to fix.
 - Never send audio to the live API while developing or testing. `check` is read-only, but run it
   only when the user asks.
 - Never add, print, or commit credentials, state files, audio, diarizations or transcripts.

@@ -7,7 +7,9 @@ is offline and needs no key, and `resume` is refused for synchronous services.
 The rest of this guide describes the shared helper for every service where
 submission is enabled (Search, OCR, Images, Diarization).
 
-The helper is deliberately restricted to Starter subscription billing. Every
+The helper spends from a Starter subscription, or from the wallet only up to an
+amount the user approved (`--wallet-limit`, see SKILL.md, "Paying from the wallet").
+For a subscription key every
 `run` re-reads `GET /v1/limits`, the public wallet prices, and the service quota.
 All of these must pass:
 
@@ -165,8 +167,10 @@ Relay installation or configuration changes:
 - `service`: service name; `provider_job_id`: durable async provider ID, or null
   for synchronous Search, transcription and diarization, for `merge`, and for
   unacknowledged submissions. Never fabricate one.
-- `status`: `blocked`, `reconciliation_required`, `submitted`, `timed_out`,
-  `poll_error`, `failed`, or `completed`. A read-only check reports `ready`, not
+- `status`: `blocked`, `wallet_approval_required`, `reconciliation_required`,
+  `submitted`, `timed_out`, `poll_error`, `failed`, or `completed`.
+  `wallet_approval_required` means nothing was sent: a wallet key would pay, and
+  the user must approve the amount first. A read-only check reports `ready`, not
   a completed provider job; transcription never reports `ready`, because its check
   always ends `blocked`. An offline `merge` reports `completed` without any provider job.
 - `artifacts`: references with `sha256` and `provenance` (endpoint, retrieval time,
