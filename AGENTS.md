@@ -150,7 +150,8 @@ it must equal the tag without the `v`:
 
 - Codex reads this file automatically. Its default sandbox blocks network access and writes
   outside the workspace, which is all the offline tests need.
-- A live `check` needs the network and reads the key from `~/.coddy`, outside the workspace. Ask
+- A live `check` needs the network and reads the key from the environment or
+  `${CODDY_HOME:-~/.coddy}/.env`, outside the workspace. Ask
   the user before requesting broader sandbox access; never widen it to send audio.
 
 ## Coddy
@@ -159,6 +160,6 @@ it must equal the tag without the `v`:
 - The skill reads its own `NEURALDEEP_DIARIZATION_API_KEY`, then the shared `NEURALDEEP_API_KEY`, each from the
   environment, then from `${CODDY_HOME:-~/.coddy}/.env` (several keys separated by commas;
   the first that passes the free checks is used). It does not read the Coddy provider file.
-  Ask the user to add a missing key to `~/.coddy/.env`; never ask for a key in the chat.
+  Ask the user to add a missing key to `${CODDY_HOME:-~/.coddy}/.env`; never ask for a key in the chat.
 - Run skill commands from the skill directory, and keep state files in a private directory
   outside the checkout.

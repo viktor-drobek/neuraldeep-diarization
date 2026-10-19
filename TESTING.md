@@ -436,10 +436,21 @@ provider does not say what it counts. Seven tests failed first; each of 7
 mutations fails one. The diarization docs now say a new transcript needs a
 wallet key and the user's approval.
 
+## Fourteenth cross-review
+
+Two low items. When no home directory could be determined (`CODDY_HOME` naming
+an unknown `~user`, or no `HOME` and no passwd entry), `Path.home()` raised
+`RuntimeError` and `check`/`run` printed a traceback instead of the JSON
+envelope; `resolve_keys()` now treats that as "no .env" and reports the missing
+key as usual. The test failed first, and the original case (Python 3.10 in
+Docker as UID 4242 without `HOME`) now prints the blocked envelope. The Codex
+section of AGENTS.md said a live `check` reads the key from `~/.coddy`; it now
+names the environment and `${CODDY_HOME:-~/.coddy}/.env`.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **160 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **161 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed; under `-W always::ResourceWarning`: no warning.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.
