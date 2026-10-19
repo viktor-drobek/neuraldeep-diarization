@@ -131,13 +131,14 @@ class DiarizationTests(unittest.TestCase):
         for name in names:
             self.assertIn(name, ignored)
 
-    def test_docs_say_no_new_transcript_can_be_made_today(self):
+    def test_docs_say_a_new_transcript_needs_a_wallet_key_today(self):
         text = skill()
         self.assertNotIn("can also diarize on its own", text)
-        self.assertIn("SpeechCore uploads are blocked", text)
+        self.assertNotIn("SpeechCore uploads are blocked too", text)
+        self.assertIn("only a wallet key can make the transcript today", text)
         summary = text.split("## Workflow summary", 1)[1].split("\n## ", 1)[0]
         self.assertIn("1. **Confirm a timed transcript** of the same audio exists", summary)
-        self.assertIn("SpeechCore uploads are blocked", (ROOT / "AGENTS.md").read_text(encoding="utf-8"))
+        self.assertIn("only with a wallet key", (ROOT / "AGENTS.md").read_text(encoding="utf-8"))
 
     def test_examples_match_their_numbers(self):
         text = skill()

@@ -57,13 +57,12 @@ speaker, join its segments by time with a transcript of the same recording:
 
 1. A transcript with timed `segments` (`start`, `end`, `text`) from
    `POST /v1/audio/transcriptions`, the **neuraldeep-transcriptions** skill.
-   That skill blocks transcription today, until its remaining-quota endpoint is
-   verified, so it cannot produce the transcript yet.
-2. Or a transcript JSON saved by a **neuraldeep-speechcore** `resume` of an
-   existing SpeechCore job, which has the same `segments` shape.
-   SpeechCore uploads are blocked too, so it cannot transcribe a new recording either.
+2. Or a transcript JSON from a **neuraldeep-speechcore** job, which has the same
+   `segments` shape.
 
-So for a new recording no skill can make the transcript today. **Before paying
+Neither service has a verified remaining-quota endpoint for a subscription, so
+for a new recording only a wallet key can make the transcript today, and only
+after the user approves its cost (see "Paying from the wallet"). **Before paying
 for a diarization to build a speaker transcript, confirm a timed transcript of
 the same audio already exists**; if it does not, tell the user and stop, unless
 they want the speaker turns alone. Then run `merge` (section 3). It needs no
@@ -232,8 +231,8 @@ The helper sends only the audio file: no `response_format` and no
 ## Workflow summary
 
 1. **Confirm a timed transcript** of the same audio exists when the user wants a
-   speaker transcript; neuraldeep-transcriptions and SpeechCore uploads are
-   blocked today, so tell the user before spending minutes if there is none.
+   speaker transcript; a new one needs a wallet key and the user's approval of
+   its cost, so tell the user before spending minutes if there is none.
 2. **Verify the audio length** locally and round it up to whole minutes.
 3. **Preflight** with `check diarize --minutes N`; read the envelope's `errors`.
 4. **Diarize** with `run diarize`, to a new private state path.

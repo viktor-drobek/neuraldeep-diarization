@@ -419,10 +419,27 @@ unknown flag); each of 10 mutations fails a test. A live read-only
 `wallet_approval_required`: about 0.60 RUB (2 x 0.3 RUB for `audio:diarize`). No
 billed request was sent.
 
+## Wallet-paid transcription and SpeechCore uploads
+
+By the owner's request the shared helper now submits to the two services that
+were refused outright, but only with a wallet key and the user's approval; a
+subscription key stays blocked at the guard, since neither has a verified
+remaining-quota endpoint. Transcription posts `file` and `model` to
+`POST /v1/audio/transcriptions` and validates the synchronous answer (`text`,
+and timed `segments` when present), with the long `max(120, 30 * minutes)`
+answer timeout; anything else is `reconciliation_required`. SpeechCore posts
+`file` to `POST https://speechcore.neuraldeep.ru/api/upload`, keeps `task_id`
+and polls the existing job path. `--minutes` is required for every
+minute-billed service (diarize, transcription, SpeechCore). The wallet warning
+adds the price row's per-million output-token rate when it has one, because the
+provider does not say what it counts. Seven tests failed first; each of 7
+mutations fails one. The diarization docs now say a new transcript needs a
+wallet key and the user's approval.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
-  **156 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
+  **160 tests passed** (1 skipped outside a tag build), 0 EncodingWarnings.
 - The same suite under `LC_ALL=C PYTHONUTF8=0`: passed; under `-W always::ResourceWarning`: no warning.
 - The same suite on Python 3.10.22 (`python:3.10-slim` in Docker, non-root, no network): passed.
 - `python3 -B scripts/client.py --help`: passed, with no network call.

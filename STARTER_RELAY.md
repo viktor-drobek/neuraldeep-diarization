@@ -47,8 +47,8 @@ No credentials, account snapshots, or live remaining values are test fixtures.
 | Search | `/v1/search/quota`: `tier`; `search` and `crawl` each have `mode: tier`, `day.remaining`, `month.remaining` | `search:web`, `search:tg`, `search:crawl` |
 | OCR | `/v1/ocr/balance`: `tier`, `daily_pages.remaining`, `monthly_pages.remaining` | `ocr:extract` |
 | Images | `/v1/images/quota`: `tier`, `img.day.remaining`, `img.month.remaining` | `image:generate`, `image:upscale`, `image:background_remove`, `image:enhance`, `image:avatar` |
-| SpeechCore | **Unverified: uploads blocked.** The reference does not identify a live remaining-quota endpoint. | `speechcore` (non-premium alone is insufficient) |
-| Transcriptions | **Unverified: transcription blocked.** The reference names no remaining-quota endpoint for `/v1/audio/transcriptions`; `GET /v1/audio/quota` and `GET /v1/audio/transcriptions/quota` returned 404 on 2026-10-17. `/v1/limits` has only chat and vector buckets. | `gigaam-v3`, `whisper-1`, `whisper-podlodka-turbo` (each `billing: minute`; the helper checks the chosen model's row; non-premium alone is insufficient) |
+| SpeechCore | **Unverified: subscription uploads blocked.** The reference does not identify a live remaining-quota endpoint; a wallet key can pay with the user's approval. | `speechcore` (non-premium alone is insufficient) |
+| Transcriptions | **Unverified: subscription transcription blocked** (a wallet key can pay with the user's approval). The reference names no remaining-quota endpoint for `/v1/audio/transcriptions`; `GET /v1/audio/quota` and `GET /v1/audio/transcriptions/quota` returned 404 on 2026-10-17. `/v1/limits` has only chat and vector buckets. | `gigaam-v3`, `whisper-1`, `whisper-podlodka-turbo` (each `billing: minute`; the helper checks the chosen model's row; non-premium alone is insufficient) |
 | Diarization | `/v1/audio/diarize/quota`: `unit: minute`, `tier`, `day` and `month` each with `used` and `limit`; there is no `remaining` field, so the helper uses `limit - used` | `audio:diarize` (`billing: unit`) |
 
 OCR requires a locally verified input page count through `--pages`. `fast`

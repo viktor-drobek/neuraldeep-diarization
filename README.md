@@ -7,9 +7,8 @@ quota before it submits, saves the validated JSON, and merges it offline with a
 timed transcript from `/v1/audio/transcriptions` (the
 [neuraldeep-transcriptions](https://github.com/viktor-drobek/neuraldeep-transcriptions)
 skill) or an existing SpeechCore job into a transcript split by speaker,
-written as JSON, WebVTT, SRT or RTTM. Both transcription skills block new
-transcriptions today, so check a transcript exists before paying for a
-diarization meant for one.
+written as JSON, WebVTT, SRT or RTTM. A new transcript needs a wallet key and the user's approval of its cost, so
+check a transcript exists before paying for a diarization meant for one.
 
 A [Coddy](https://coddy.dev) / AI-agent skill for the **NeuralDeep Hub API**.
 Model page: <https://hub.neuraldeep.ru/models/nemotron-3-diarization>.

@@ -26,8 +26,8 @@ guard:
 - `--minutes` is the locally verified audio length rounded up to whole minutes. The helper never
   guesses or parses it, and refuses more than 240 minutes or a file over the documented 500 MB.
 - The model returns speaker segments without text. `merge` joins them by time with a transcript
-  from `/v1/audio/transcriptions` (neuraldeep-transcriptions, blocked today) or an existing
-  SpeechCore job (SpeechCore uploads are blocked too), and writes JSON, WebVTT or SRT;
+  from `/v1/audio/transcriptions` (neuraldeep-transcriptions) or a SpeechCore job (both new
+  transcriptions only with a wallet key and the user's approval), and writes JSON, WebVTT or SRT;
   `--format rttm` converts the diarization alone. SKILL.md tells agents to confirm a transcript
   exists before paying for a diarization meant for a speaker transcript.
 - The upload is streamed in 8 KB blocks; each block and the wait for the answer get
