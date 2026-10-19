@@ -9,3 +9,6 @@ diarize-state.json
 diarization.json
 transcript.json
 speakers.json
+speakers.vtt
+speakers.srt
+diarization.rttm
