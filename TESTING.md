@@ -447,6 +447,12 @@ Docker as UID 4242 without `HOME`) now prints the blocked envelope. The Codex
 section of AGENTS.md said a live `check` reads the key from `~/.coddy`; it now
 names the environment and `${CODDY_HOME:-~/.coddy}/.env`.
 
+## Release metadata (v1.0.0)
+
+`metadata.version` stays 1.0.0: this skill has not been released yet, so its
+first release is v1.0.0. `tests/test_release.py` passes; the tag check runs on
+the `v1.0.0` tag build after the merge.
+
 ## Final results
 
 - `env -u NEURALDEEP_API_KEY -u NEURALDEEP_DIARIZATION_API_KEY CODDY_HOME=/nonexistent python3 -X warn_default_encoding -B -m unittest discover -s tests`:
