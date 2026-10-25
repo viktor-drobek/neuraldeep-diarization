@@ -15,8 +15,7 @@ Model page: <https://hub.neuraldeep.ru/models/nemotron-3-diarization>.
 
 ## Author
 
-This skill was authored by **Claude Opus 5.5** after the neuraldeep-* skills
-authored by the **kimi2.6** and **qwen3.8 27b** models, and is published by **viktor-drobek**.
+**Viktor Drobek**
 
 ## Install
 
