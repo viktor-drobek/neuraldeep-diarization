@@ -60,13 +60,11 @@ wallet-affordable count for the daily and monthly subscription buckets.
 Image generation and processing POSTs return `{task_uid}`, not PNG bytes.
 All operations use `/v1/images/tasks/{uid}` until `finished`, then the binary
 `/result` endpoint. OCR uses `{id}` and `completed`; SpeechCore's documented
-`{task_id}` uses `completed`, but this helper only resumes existing SpeechCore
-jobs. Advertised daily ceilings are not a live budget and cannot unblock uploads.
+`{task_id}` uses `completed`. SpeechCore supports a new wallet upload after explicit cost approval and read-only retrieval of an existing job. Subscription uploads remain blocked without a verified remaining-quota endpoint. Advertised daily ceilings are not a live budget.
 
 Transcription is synchronous like Search: the transcript is the POST response and
 there is no provider job ID, so `resume` is refused for it. It is billed per
-minute of audio. Unblocking it needs a verified remaining-minutes bucket **and**
-a locally verified audio duration, rounded up to whole minutes, as the quota cost.
+minute of audio. Subscription transcription needs a verified remaining-minutes bucket and stays blocked without one. A wallet key can transcribe after explicit cost approval. Both paths require a locally verified audio duration rounded up to whole minutes.
 
 Diarization is synchronous too, and billed per minute of audio, rounded up. Its
 bucket is verified, so `run diarize` is enabled. `--minutes` must be the locally
@@ -152,8 +150,7 @@ transcript JSON. Diarization artifacts contain the validated diarization JSON
 (`duration`, `num_speakers`, `minutes_charged` and timed `speaker` segments); any
 other answer is `reconciliation_required`. A `merge` artifact contains the speaker
 transcript as JSON (with the SHA-256 of both inputs), WebVTT, SRT or RTTM; the
-envelope's artifact provenance carries the input hashes in every format. Transcription produces no artifacts
-while it is blocked. Invalid MIME, empty bodies and error-shaped JSON from an async
+envelope's artifact provenance carries the input hashes in every format. Approved wallet transcription saves validated transcript JSON. Subscription transcription produces no result artifact while blocked. Invalid MIME, empty bodies and error-shaped JSON from an async
 job produce `poll_error` with the same provider job ID, not a completed artifact.
 These checks do not replace full image decoding, visual review, or factual
 transcript review.
@@ -171,8 +168,7 @@ Relay installation or configuration changes:
   `submitted`, `timed_out`, `poll_error`, `failed`, or `completed`.
   `wallet_approval_required` means nothing was sent: a wallet key would pay, and
   the user must approve the amount first. A read-only check reports `ready`, not
-  a completed provider job; transcription never reports `ready`, because its check
-  always ends `blocked`. An offline `merge` reports `completed` without any provider job.
+  a completed provider job; subscription transcription remains `blocked`. A wallet transcription check can report `ready` after explicit approval and successful wallet checks without submitting audio. An offline `merge` reports `completed` without any provider job.
 - `artifacts`: references with `sha256` and `provenance` (endpoint, retrieval time,
   `trust: untrusted_data`); no transcript or extracted content in the envelope.
 - `quota_observed`: timestamp, endpoint, relevant service buckets, required units,
